@@ -1,0 +1,144 @@
+/* Google Fonts must be imported before tailwindcss */
+@import url('https://fonts.googleapis.com/css2?family=Koulen&family=Barlow+Condensed:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #000000;
+    --foreground: #ffffff;
+    --muted: #888888;
+    --surface: #111111;
+    --font-koulen: "Koulen", sans-serif;
+    --font-din: "Barlow Condensed", sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: auto; /* Lenis handles smooth scroll */
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: "DIN Condensed", "Barlow Condensed", sans-serif;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: #ffffff;
+    color: #000000;
+  }
+}
+
+/* Font alias mapping */
+@layer base {
+  .font-koulen {
+    font-family: "Koulen", sans-serif;
+    line-height: 0.82;
+    letter-spacing: 0.04em;
+  }
+
+  .font-din {
+    font-family: "Barlow Condensed", sans-serif;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+
+  .font-din-bold {
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+}
+
+/* Utility overrides for design system */
+.text-muted {
+  color: var(--muted);
+}
+
+.bg-surface {
+  background: var(--surface);
+}
+
+/* Lenis smooth scroll */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Marquee animation */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+/* Gallery masonry */
+.masonry-grid {
+  columns: 3;
+  column-gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .masonry-grid {
+    columns: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .masonry-grid {
+    columns: 1;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 4px;
+}
+
+/* Clip path animation for hero reveal */
+.clip-reveal {
+  clip-path: inset(0 100% 0 0);
+}
+
+/* Lightbox */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lightbox-overlay img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+}
