@@ -6,11 +6,36 @@ export default function MerchPreview() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: POST to D1-backed API when ready
-    setSubmitted(true);
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email }),
+      });
+
+      if (res.status === 409) {
+        setError("You're already on the list.");
+        return;
+      }
+      if (!res.ok) {
+        setError("Something went wrong. Try again.");
+        return;
+      }
+
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -61,6 +86,16 @@ export default function MerchPreview() {
             </p>
           </div>
         ) : (
+          <>
+          {error && (
+            <p
+              className="text-red-400 text-sm mb-2"
+              style={{ fontFamily: "Barlow Condensed, sans-serif" }}
+            >
+              {error}
+            </p>
+          )}
+
           <form
             onSubmit={handleSubmit}
             className="flex flex-col sm:flex-row gap-4 w-full max-w-2xl"
@@ -89,13 +124,15 @@ export default function MerchPreview() {
             />
             <button
               type="submit"
+              disabled={loading}
               className="bg-white text-black px-8 py-3.5 uppercase text-sm font-semibold tracking-wider
-                         hover:bg-white/90 transition-colors whitespace-nowrap"
+                         hover:bg-white/90 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.15em" }}
             >
-              Join Waitlist
+              {loading ? "..." : "Join Waitlist"}
             </button>
           </form>
+          </>
         )}
       </div>
     </section>

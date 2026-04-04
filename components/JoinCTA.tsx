@@ -39,11 +39,32 @@ export default function JoinCTA() {
   const [partnerEmail, setPartnerEmail] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handlePartnerSubmit(e: React.FormEvent) {
+  async function handlePartnerSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: POST to D1-backed API when ready
-    setSubmitted(true);
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/collaborate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand, email: partnerEmail, message }),
+      });
+
+      if (!res.ok) {
+        setError("Something went wrong. Try again.");
+        return;
+      }
+
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -106,6 +127,11 @@ export default function JoinCTA() {
           </p>
 
           {/* Partnership form */}
+          {error && (
+            <p className="text-red-400 text-sm" style={{ fontFamily: "Barlow Condensed, sans-serif" }}>
+              {error}
+            </p>
+          )}
           {submitted ? (
             <div className="border border-white/12 bg-[#111111] px-8 py-10 w-full max-w-xl text-center">
               <p className="text-white uppercase" style={{ fontFamily: "var(--font-koulen), Koulen, sans-serif", letterSpacing: "0.05em", fontSize: "1.2rem" }}>
@@ -152,11 +178,12 @@ export default function JoinCTA() {
               />
               <button
                 type="submit"
+                disabled={loading}
                 className="bg-white text-black px-8 py-3.5 uppercase text-sm font-semibold tracking-wider
-                           hover:bg-white/90 transition-colors"
+                           hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.15em" }}
               >
-                Send Inquiry
+                {loading ? "Sending..." : "Send Inquiry"}
               </button>
             </form>
           )}
