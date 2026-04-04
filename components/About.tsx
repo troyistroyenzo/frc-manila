@@ -11,6 +11,15 @@ interface Photo {
   url: string;
 }
 
+// Statement 01 — explicit photos (grid)
+const STMT01_KEYS = [
+  "photos/042625 Founders Runners Club Run 027",
+  "photos/042625 Founders Runners Club Run 043",
+  "photos/042625 Founders Runners Club Run 113",
+  "photos/042625 Founders Runners Club Run 128",
+  "photos/042625 Founders Runners Club Run 152",
+];
+
 const statements = [
   {
     number: "01",
@@ -32,13 +41,31 @@ const statements = [
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photos01, setPhotos01] = useState<Photo[]>([]);
+  const [photo02Url, setPhoto02Url] = useState<string | null>(null);
+  const [photo03, setPhoto03] = useState<Photo | null>(null);
 
   useEffect(() => {
-    fetch("/api/gallery")
+    fetch("/api/gallery?all=true")
       .then((r) => r.json())
       .then(({ photos: data }: { photos: Photo[] }) => {
-        setPhotos((data ?? []).slice(0, 6));
+        const all: Photo[] = data ?? [];
+
+        // Statement 01: match by partial key
+        const matched01 = STMT01_KEYS
+          .map((key) => all.find((p) => p.name.includes(key.replace("photos/", ""))))
+          .filter(Boolean) as Photo[];
+        setPhotos01(matched01);
+
+        // Remaining photos not used in Statement 01
+        const usedInStmt01 = new Set(matched01.map((p) => p.name));
+        const remaining = all.filter((p) => !usedInStmt01.has(p.name));
+
+        // Statement 02: first available photo not in stmt01
+        setPhoto02Url(remaining[0]?.url ?? null);
+
+        // Statement 03: second available photo not in stmt01
+        setPhoto03(remaining[1] ?? null);
       })
       .catch(() => {});
   }, []);
@@ -53,152 +80,130 @@ export default function About() {
       const body = item.querySelector(".about-body");
       const number = item.querySelector(".about-number");
 
-      gsap.fromTo(
-        number,
-        { opacity: 0, x: -30 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.6,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: item,
-            start: "top 80%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
+      gsap.fromTo(number, { opacity: 0, x: -30 }, {
+        opacity: 1, x: 0, duration: 0.6, ease: "power3.out",
+        scrollTrigger: { trigger: item, start: "top 80%", toggleActions: "play none none none" },
+      });
 
-      gsap.fromTo(
-        headline,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: item,
-            start: "top 75%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
+      gsap.fromTo(headline, { opacity: 0, y: 40 }, {
+        opacity: 1, y: 0, duration: 1, ease: "power3.out",
+        scrollTrigger: { trigger: item, start: "top 75%", toggleActions: "play none none none" },
+      });
 
-      gsap.fromTo(
-        body,
-        { opacity: 0, y: 20 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          delay: 0.2,
-          scrollTrigger: {
-            trigger: item,
-            start: "top 70%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
+      gsap.fromTo(body, { opacity: 0, y: 20 }, {
+        opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: 0.2,
+        scrollTrigger: { trigger: item, start: "top 70%", toggleActions: "play none none none" },
+      });
 
-      // Animate photos in statement 01
       const photoItems = item.querySelectorAll(".about-photo-item");
       if (photoItems.length > 0) {
-        gsap.fromTo(
-          photoItems,
-          { opacity: 0, scale: 0.95 },
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.6,
-            ease: "power3.out",
-            stagger: 0.08,
-            scrollTrigger: {
-              trigger: item,
-              start: "top 70%",
-              toggleActions: "play none none none",
-            },
-          }
-        );
+        gsap.fromTo(photoItems, { opacity: 0, scale: 0.95 }, {
+          opacity: 1, scale: 1, duration: 0.6, ease: "power3.out", stagger: 0.08,
+          scrollTrigger: { trigger: item, start: "top 70%", toggleActions: "play none none none" },
+        });
+      }
+
+      const singlePhoto = item.querySelector(".about-single-photo");
+      if (singlePhoto) {
+        gsap.fromTo(singlePhoto, { opacity: 0, y: 20 }, {
+          opacity: 1, y: 0, duration: 0.6, ease: "power3.out",
+          scrollTrigger: { trigger: item, start: "top 70%", toggleActions: "play none none none" },
+        });
       }
     });
-  }, [photos]);
+
+    // Recalculate trigger positions after async photo state settles —
+    // fires any triggers already in the viewport.
+    ScrollTrigger.refresh();
+  }, [photos01, photo02Url, photo03]);
 
   return (
-    <section
-      ref={sectionRef}
-      className="bg-black py-24 md:py-40"
-    >
+    <section ref={sectionRef} className="bg-black py-24 md:py-40">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        {statements.map((s, i) => (
-          <div
-            key={i}
-            ref={(el) => { itemRefs.current[i] = el; }}
-            className="border-t border-white/10 py-16 md:py-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16"
-          >
-            {/* Number */}
-            <div className="md:col-span-1">
-              <span
-                className="about-number text-white/20 text-sm"
-                style={{
-                  fontFamily: "Barlow Condensed, sans-serif",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                {s.number}
-              </span>
-            </div>
 
-            {/* Headline + Body */}
-            <div className={i === 0 && photos.length > 0 ? "md:col-span-6 space-y-6" : "md:col-span-11 space-y-6"}>
-              <h2
-                className="about-headline text-white uppercase"
-                style={{
-                  fontFamily: "var(--font-koulen), Koulen, sans-serif",
-                  fontSize: "clamp(2.5rem, 6vw, 7rem)",
-                  lineHeight: 0.85,
-                  letterSpacing: "0.03em",
-                }}
-              >
-                {s.headline}
-              </h2>
-
-              <p
-                className="about-body text-white/50 max-w-2xl text-lg md:text-xl"
-                style={{
-                  fontFamily: "Barlow Condensed, sans-serif",
-                  letterSpacing: "0.01em",
-                  lineHeight: 1.4,
-                }}
-              >
-                {s.body}
-              </p>
-            </div>
-
-            {/* Photo grid for statement 01 */}
-            {i === 0 && photos.length > 0 && (
-              <div className="md:col-span-5 grid grid-cols-2 gap-1">
-                {photos.map((photo) => (
-                  <div
-                    key={photo.name}
-                    className="about-photo-item relative aspect-[3/2] overflow-hidden bg-white/5"
-                    style={{ opacity: 0 }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photo.url}
-                      alt={photo.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ")}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* Statement 01 — photos RIGHT */}
+        <div
+          ref={(el) => { itemRefs.current[0] = el; }}
+          className="border-t border-white/10 py-16 md:py-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16"
+        >
+          <div className="md:col-span-1">
+            <span className="about-number text-white/20 text-sm" style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.1em" }}>
+              {statements[0].number}
+            </span>
           </div>
-        ))}
+          <div className={photos01.length > 0 ? "md:col-span-6 space-y-6" : "md:col-span-11 space-y-6"}>
+            <h2 className="about-headline text-white uppercase" style={{ fontFamily: "var(--font-koulen), Koulen, sans-serif", fontSize: "clamp(2.5rem, 6vw, 7rem)", lineHeight: 0.85, letterSpacing: "0.03em" }}>
+              {statements[0].headline}
+            </h2>
+            <p className="about-body text-white/50 max-w-2xl text-lg md:text-xl" style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.01em", lineHeight: 1.4 }}>
+              {statements[0].body}
+            </p>
+          </div>
+          {photos01.length > 0 && (
+            <div className="md:col-span-5 grid grid-cols-2 gap-1">
+              {photos01.map((photo) => (
+                <div key={photo.name} className="about-photo-item relative aspect-[3/2] overflow-hidden bg-white/5" style={{ opacity: 0 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo.url} alt={photo.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Statement 02 — photo LEFT (alternating) */}
+        <div
+          ref={(el) => { itemRefs.current[1] = el; }}
+          className="border-t border-white/10 py-16 md:py-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16"
+        >
+          <div className="md:col-span-1">
+            <span className="about-number text-white/20 text-sm" style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.1em" }}>
+              {statements[1].number}
+            </span>
+          </div>
+          {/* Photo comes before text in DOM — appears on left in grid */}
+          {photo02Url && (
+            <div className="about-single-photo md:col-span-4 relative aspect-[3/4] overflow-hidden bg-white/5 order-first md:order-none" style={{ opacity: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo02Url} alt="A movement for movement" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
+            </div>
+          )}
+          <div className={photo02Url ? "md:col-span-7 space-y-6" : "md:col-span-11 space-y-6"}>
+            <h2 className="about-headline text-white uppercase" style={{ fontFamily: "var(--font-koulen), Koulen, sans-serif", fontSize: "clamp(2.5rem, 6vw, 7rem)", lineHeight: 0.85, letterSpacing: "0.03em" }}>
+              {statements[1].headline}
+            </h2>
+            <p className="about-body text-white/50 max-w-2xl text-lg md:text-xl" style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.01em", lineHeight: 1.4 }}>
+              {statements[1].body}
+            </p>
+          </div>
+        </div>
+
+        {/* Statement 03 — photo RIGHT (back to default) */}
+        <div
+          ref={(el) => { itemRefs.current[2] = el; }}
+          className="border-t border-white/10 py-16 md:py-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16"
+        >
+          <div className="md:col-span-1">
+            <span className="about-number text-white/20 text-sm" style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.1em" }}>
+              {statements[2].number}
+            </span>
+          </div>
+          <div className={photo03 ? "md:col-span-6 space-y-6" : "md:col-span-11 space-y-6"}>
+            <h2 className="about-headline text-white uppercase" style={{ fontFamily: "var(--font-koulen), Koulen, sans-serif", fontSize: "clamp(2.5rem, 6vw, 7rem)", lineHeight: 0.85, letterSpacing: "0.03em" }}>
+              {statements[2].headline}
+            </h2>
+            <p className="about-body text-white/50 max-w-2xl text-lg md:text-xl" style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.01em", lineHeight: 1.4 }}>
+              {statements[2].body}
+            </p>
+          </div>
+          {photo03 && (
+            <div className="about-single-photo md:col-span-5 relative aspect-[4/3] overflow-hidden bg-white/5" style={{ opacity: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo03.url} alt={photo03.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
+            </div>
+          )}
+        </div>
+
       </div>
     </section>
   );

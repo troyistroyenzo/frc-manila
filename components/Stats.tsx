@@ -145,8 +145,10 @@ export default function Stats() {
                 className="text-white mb-4"
                 style={{
                   fontFamily: "var(--font-koulen), Koulen, sans-serif",
-                  fontSize: "clamp(3rem, 8vw, 7rem)",
-                  lineHeight: 0.85,
+                  fontSize: stat.value !== null
+                    ? "clamp(3rem, 8vw, 7rem)"
+                    : "clamp(1.6rem, 4vw, 3.5rem)",
+                  lineHeight: 0.9,
                   letterSpacing: "0.02em",
                   whiteSpace: "pre-line",
                 }}

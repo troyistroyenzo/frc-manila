@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Koulen } from "next/font/google";
 import { LenisProvider } from "@/lib/lenis";
+import ScrollFadeObserver from "@/components/ScrollFadeObserver";
 import "./globals.css";
 
 const koulen = Koulen({
@@ -29,7 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={koulen.variable}>
       <body>
-        <LenisProvider>{children}</LenisProvider>
+        <LenisProvider>
+          <ScrollFadeObserver />
+          {children}
+        </LenisProvider>
       </body>
     </html>
   );

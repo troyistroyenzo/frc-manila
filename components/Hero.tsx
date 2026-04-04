@@ -30,19 +30,36 @@ export default function Hero() {
   const ctaRef = useRef<HTMLDivElement>(null);
   const scrollHintRef = useRef<HTMLDivElement>(null);
 
-  // Ensure autoplay fires even when browser defers it
+  // Lazy-load video: only fetch when hero enters viewport, then autoplay
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = true;
-    video.load();
-    const play = () => video.play().catch(() => {});
-    if (video.readyState >= 3) {
-      play();
-    } else {
-      video.addEventListener("canplay", play, { once: true });
-    }
-    return () => video.removeEventListener("canplay", play);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        video.muted = true;
+        // Assign src only now to avoid network cost on initial load
+        if (!video.src && !video.querySelector("source")?.getAttribute("data-loaded")) {
+          const source = video.querySelector("source");
+          if (source && !source.src) {
+            source.src = VIDEO_URL;
+          }
+        }
+        video.load();
+        const play = () => video.play().catch(() => {});
+        if (video.readyState >= 3) {
+          play();
+        } else {
+          video.addEventListener("canplay", play, { once: true });
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -88,11 +105,10 @@ export default function Hero() {
       <video
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover opacity-40"
-        autoPlay
         muted
         loop
         playsInline
-        preload="auto"
+        preload="none"
         disablePictureInPicture
       >
         <source src={VIDEO_URL} type="video/mp4" />
@@ -191,13 +207,6 @@ export default function Hero() {
           </a>
         </div>
 
-        <a
-          href="#merch-preview"
-          className="inline-block mt-6 text-white/50 hover:text-white transition-colors text-xs uppercase tracking-[0.2em]"
-          style={{ fontFamily: "Barlow Condensed, sans-serif" }}
-        >
-          FRC Merch
-        </a>
       </div>
 
       {/* Scroll hint */}

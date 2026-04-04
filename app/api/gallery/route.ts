@@ -17,12 +17,15 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const startAfter = searchParams.get("after") ?? undefined;
 
+  const allMode = searchParams.get("all") === "true";
+  const limit = allMode ? 1000 : PAGE_SIZE;
+
   try {
     const res = await s3.send(
       new ListObjectsV2Command({
         Bucket: "frc",
         Prefix: "photos/",
-        MaxKeys: PAGE_SIZE + 1,
+        MaxKeys: limit + 1,
         StartAfter: startAfter ? startAfter : undefined,
       })
     );
@@ -31,8 +34,8 @@ export async function GET(request: Request) {
       .map((obj) => obj.Key!)
       .filter((key) => /\.(jpe?g|png|webp|gif|avif)$/i.test(key));
 
-    const hasMore = allKeys.length > PAGE_SIZE;
-    const keys = allKeys.slice(0, PAGE_SIZE);
+    const hasMore = !allMode && allKeys.length > PAGE_SIZE;
+    const keys = allMode ? allKeys : allKeys.slice(0, PAGE_SIZE);
 
     const photos = keys.map((key) => ({
       name: key,

@@ -15,7 +15,7 @@ export default function MerchPreview() {
 
   return (
     <section id="merch-preview" className="bg-black px-6 md:px-12 py-20 md:py-28">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
         <div className="mb-8 md:mb-10">
           <p
             className="text-white/35 uppercase text-xs tracking-[0.2em]"
@@ -32,10 +32,10 @@ export default function MerchPreview() {
               letterSpacing: "0.03em",
             }}
           >
-            MNL TEE
+            MERCH WAITLIST
           </h2>
           <p
-            className="text-white/55 mt-3 max-w-2xl text-base md:text-lg"
+            className="text-white/55 mt-3 text-base md:text-lg"
             style={{ fontFamily: "Barlow Condensed, sans-serif" }}
           >
             Be the first to know when FRC Manila merch drops. Join the waitlist.
@@ -43,9 +43,7 @@ export default function MerchPreview() {
         </div>
 
         {submitted ? (
-          <div
-            className="border border-white/12 bg-[#111111] px-8 py-12 max-w-xl"
-          >
+          <div className="border border-white/12 bg-[#111111] px-10 py-12 w-full max-w-xl text-center">
             <p
               className="text-white uppercase text-lg"
               style={{
@@ -59,13 +57,13 @@ export default function MerchPreview() {
               className="text-white/50 mt-2 text-sm"
               style={{ fontFamily: "Barlow Condensed, sans-serif" }}
             >
-              We&apos;ll notify you when the MNL Tee is ready to drop.
+              We&apos;ll notify you when FRC Manila merch is ready to drop.
             </p>
           </div>
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col sm:flex-row gap-4 max-w-xl"
+            className="flex flex-col sm:flex-row gap-4 w-full max-w-2xl"
           >
             <input
               name="name"
