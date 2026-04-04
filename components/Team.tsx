@@ -1,42 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const R2_FRC = "https://pub-ac9f5d9fc73d402ca8032993e2b2761c.r2.dev";
+
 const MEMBERS = [
-  { key: "aileen", display: "Aileen", bio: "" },
-  { key: "chris",  display: "Chris",  bio: "Anxiously building communities for organic encounters." },
-  { key: "mark",   display: "Mark",   bio: "" },
-  { key: "nicki",  display: "Nicki",  bio: "" },
-  { key: "taty",   display: "Taty",   bio: "Connecting, protecting, and educating people. Loves numbers, walking, and coffee." },
-  { key: "troy",   display: "Troy",   bio: "Hyrox athlete and AI bot framer." },
+  { key: "aileen", ext: "JPG", display: "Aileen", title: "Co-Founder & CPO @ HeyApril · Founder @ Himaya Lifestyle Lounge", bio: "" },
+  { key: "chris",  ext: "JPG", display: "Chris",  title: "Co-Founder @ FRC Manila, Openverse and Bettergov.ph", bio: "Anxiously building communities for organic encounters." },
+  { key: "mark",   ext: "JPG", display: "Mark",   title: "Co-Founder @ IRL Manila", bio: "Busy helping people meet new friends and lovers. Artist on break." },
+  { key: "taty",   ext: "JPG", display: "Taty",   title: "Co-Founder @ IRL Manila · Licensed Financial Protector", bio: "Connecting, protecting, and educating people. Loves numbers, walking, and coffee." },
+  { key: "niki",   ext: "JPG", display: "Nicky",  title: "CEO @ Nicky Rice", bio: "" },
+  { key: "troy",   ext: "JPG", display: "Troy",   title: "Co-Founder @ FRC Manila, Locked In Residency, Z21 Launchpad & Farmhouse Smokers", bio: "Hyrox athlete and AI bot framer." },
 ];
 
 export default function Team() {
   const sectionRef = useRef<HTMLElement>(null);
-  // stem → signed URL, populated asynchronously
-  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
 
-  // Fetch photos in the background — cards are always rendered regardless
-  useEffect(() => {
-    fetch("/api/team")
-      .then((r) => r.json())
-      .then(({ members }: { members: { name: string; url: string }[] }) => {
-        const map: Record<string, string> = {};
-        for (const m of members ?? []) {
-          const stem = m.name.replace(/\.[^.]+$/, "").toLowerCase();
-          map[stem] = m.url;
-        }
-        setPhotoUrls(map);
-      })
-      .catch(() => {});
-  }, []);
-
-  // GSAP runs on mount — section is always visible
   useEffect(() => {
     gsap.fromTo(
       ".team-header",
@@ -92,62 +75,61 @@ export default function Team() {
               letterSpacing: "0.03em",
             }}
           >
-            HALL OF FAME
+            CITY LEADERS
           </h2>
         </div>
 
         {/* Grid — always rendered from static data */}
         <div className="team-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5">
-          {MEMBERS.map((member) => {
-            const photoUrl = photoUrls[member.key];
-            return (
-              <div
-                key={member.key}
-                className="team-card bg-[#111111] group cursor-default overflow-hidden"
-                style={{ opacity: 0 }}
-              >
-                {/* Photo */}
-                <div className="w-full aspect-square bg-white/5 relative overflow-hidden">
-                  {photoUrl ? (
-                    <Image
-                      src={photoUrl}
-                      alt={member.display}
-                      fill
-                      className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-                  )}
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
-                </div>
-
-                {/* Info */}
-                <div className="p-6 md:p-8">
-                  <h3
-                    className="text-white uppercase"
-                    style={{
-                      fontFamily: "var(--font-koulen), Koulen, sans-serif",
-                      fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
-                      lineHeight: 0.9,
-                      letterSpacing: "0.03em",
-                    }}
-                  >
-                    {member.display}
-                  </h3>
-                  {member.bio && (
-                    <p
-                      className="text-white/40 text-sm leading-relaxed mt-2"
-                      style={{ fontFamily: "Barlow Condensed, sans-serif" }}
-                    >
-                      {member.bio}
-                    </p>
-                  )}
-                </div>
+          {MEMBERS.map((member) => (
+            <div
+              key={member.key}
+              className="team-card bg-[#111111] group cursor-default overflow-hidden"
+              style={{ opacity: 0 }}
+            >
+              {/* Photo */}
+              <div className="w-full aspect-square bg-white/5 relative overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`${R2_FRC}/city%20leads/${member.key}.${member.ext}`}
+                  alt={member.display}
+                  className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
               </div>
-            );
-          })}
+
+              {/* Info */}
+              <div className="p-6 md:p-8">
+                <h3
+                  className="text-white uppercase"
+                  style={{
+                    fontFamily: "var(--font-koulen), Koulen, sans-serif",
+                    fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
+                    lineHeight: 0.9,
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  {member.display}
+                </h3>
+                <p
+                  className="text-white/50 text-sm mt-2"
+                  style={{ fontFamily: "Barlow Condensed, sans-serif" }}
+                >
+                  {member.title}
+                </p>
+                {member.bio && (
+                  <p
+                    className="text-white/30 text-xs leading-relaxed mt-1"
+                    style={{ fontFamily: "Barlow Condensed, sans-serif" }}
+                  >
+                    {member.bio}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

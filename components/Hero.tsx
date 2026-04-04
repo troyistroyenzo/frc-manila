@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
+
+const VIDEO_URL = "https://pub-ac9f5d9fc73d402ca8032993e2b2761c.r2.dev/videos/test%20frc.mp4";
 
 function WhatsAppIcon() {
   return (
@@ -20,21 +22,12 @@ function TelegramIcon() {
 }
 
 export default function Hero() {
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const line1Ref = useRef<HTMLDivElement>(null);
   const line2Ref = useRef<HTMLDivElement>(null);
   const line3Ref = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const scrollHintRef = useRef<HTMLDivElement>(null);
-
-  // Fetch fresh signed video URL from server-side cached route
-  useEffect(() => {
-    fetch("/api/video-url")
-      .then((r) => r.json())
-      .then(({ url }) => { if (url) setVideoUrl(url); })
-      .catch(() => {}); // silent fail — video is decorative
-  }, []);
 
   useEffect(() => {
     const tl = gsap.timeline({ delay: 0.3 });
@@ -75,19 +68,17 @@ export default function Hero() {
       ref={containerRef}
       className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-black"
     >
-      {/* Video — URL fetched server-side, auto-refreshed every 6h */}
-      {videoUrl && (
-        <video
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-        >
-          <source src={videoUrl} type="video/mp4" />
-        </video>
-      )}
+      {/* Video — served directly from R2 */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover opacity-40"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+      >
+        <source src={VIDEO_URL} type="video/mp4" />
+      </video>
 
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
@@ -181,6 +172,14 @@ export default function Hero() {
             </span>
           </a>
         </div>
+
+        <a
+          href="#merch-preview"
+          className="inline-block mt-6 text-white/50 hover:text-white transition-colors text-xs uppercase tracking-[0.2em]"
+          style={{ fontFamily: "Barlow Condensed, sans-serif" }}
+        >
+          FRC Merch
+        </a>
       </div>
 
       {/* Scroll hint */}

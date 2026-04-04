@@ -7,37 +7,31 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 const brandPartners = [
-  { name: "Single Origin", descriptor: "Coffee Partner" },
-  { name: "The Westin Manila", descriptor: "Hospitality Partner" },
-  { name: "Kultura Filipino", descriptor: "Brand Partner" },
+  { name: "Single Origin", descriptor: "Coffee Partner", logo: "/logos/single-origin.png" },
+  { name: "The Westin Manila", descriptor: "Hospitality Partner", logo: "/logos/the-westin-manila.svg" },
+  { name: "Kultura Filipino", descriptor: "Brand Partner", logo: "/logos/kultura-filipino.svg" },
 ];
 
 const communityPartners = [
-  { name: "startup.ph", descriptor: "50K+ Members" },
-  { name: "Kaskasan Buddies", descriptor: "1M+ Members" },
-  { name: "FHMoms", descriptor: "500K+ Members" },
+  { name: "startup.ph", descriptor: "50K+ Members", logo: "/logos/startup-ph.svg" },
+  { name: "Kaskasan Buddies", descriptor: "1M+ Members", logo: "/logos/kaskasan-buddies.svg" },
+  { name: "FHMoms", descriptor: "500K+ Members", logo: "/logos/fhmoms.svg" },
 ];
 
-function LogoCard({ name, descriptor }: { name: string; descriptor: string }) {
+function LogoCard({ name, descriptor, logo }: { name: string; descriptor: string; logo: string }) {
   return (
     <div className="flex-shrink-0 mx-8 md:mx-12 group cursor-default">
       <div className="flex flex-col items-center gap-2">
-        {/* Logo placeholder — replace with <img> when assets are ready */}
         <div
-          className="w-32 h-12 md:w-48 md:h-16 bg-white/5 border border-white/10 flex items-center justify-center
-                     group-hover:bg-white/10 group-hover:border-white/30 transition-all duration-300"
+          className="w-32 h-12 md:w-48 md:h-16 flex items-center justify-center
+                     group-hover:opacity-100 transition-opacity duration-300"
         >
-          <span
-            className="text-white/60 group-hover:text-white/90 uppercase text-center px-2 transition-colors duration-300"
-            style={{
-              fontFamily: "Barlow Condensed, sans-serif",
-              fontSize: "clamp(0.6rem, 2vw, 0.85rem)",
-              letterSpacing: "0.08em",
-              lineHeight: 1.2,
-            }}
-          >
-            {name}
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={logo}
+            alt={name}
+            className="h-8 md:h-12 w-auto object-contain brightness-0 invert opacity-60 group-hover:opacity-90 transition-opacity duration-300"
+          />
         </div>
         <span
           className="text-white/20 text-xs uppercase tracking-widest"
@@ -51,7 +45,6 @@ function LogoCard({ name, descriptor }: { name: string; descriptor: string }) {
 }
 
 function MarqueeRow({ partners, direction = 1 }: { partners: typeof brandPartners; direction?: number }) {
-  // Duplicate for seamless loop
   const doubled = [...partners, ...partners, ...partners, ...partners];
 
   return (
@@ -64,7 +57,7 @@ function MarqueeRow({ partners, direction = 1 }: { partners: typeof brandPartner
         }}
       >
         {doubled.map((p, i) => (
-          <LogoCard key={i} name={p.name} descriptor={p.descriptor} />
+          <LogoCard key={i} name={p.name} descriptor={p.descriptor} logo={p.logo} />
         ))}
       </div>
     </div>

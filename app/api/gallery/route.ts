@@ -1,61 +1,48 @@
-import { createClient } from "@supabase/supabase-js";
+import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 
-// Vercel caches this response for 55 minutes.
-// Signed URLs have 1-hour expiry → always valid when served from cache.
-export const revalidate = 3300;
-
+const R2_FRC_PUBLIC = "https://pub-ac9f5d9fc73d402ca8032993e2b2761c.r2.dev";
 const PAGE_SIZE = 24;
+
+const s3 = new S3Client({
+  region: "auto",
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const offset = Math.max(0, parseInt(searchParams.get("offset") ?? "0", 10));
+  const startAfter = searchParams.get("after") ?? undefined;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  // Fetch one extra to determine whether another page exists
-  const { data: files, error } = await supabase.storage
-    .from("photos")
-    .list("", {
-      limit: PAGE_SIZE + 1,
-      offset,
-      sortBy: { column: "name", order: "asc" },
-    });
-
-  if (error || !files) {
-    return NextResponse.json({ photos: [], hasMore: false }, { status: 200 });
-  }
-
-  const hasMore = files.length > PAGE_SIZE;
-  const imageFiles = files
-    .slice(0, PAGE_SIZE)
-    .filter((f) => /\.(jpe?g|png|webp|gif|avif)$/i.test(f.name));
-
-  const { data: signed, error: signError } = await supabase.storage
-    .from("photos")
-    .createSignedUrls(
-      imageFiles.map((f) => f.name),
-      3600 // 1-hour token — matches revalidate window
+  try {
+    const res = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: "frc",
+        Prefix: "photos/",
+        MaxKeys: PAGE_SIZE + 1,
+        StartAfter: startAfter ? startAfter : undefined,
+      })
     );
 
-  if (signError || !signed) {
+    const allKeys = (res.Contents ?? [])
+      .map((obj) => obj.Key!)
+      .filter((key) => /\.(jpe?g|png|webp|gif|avif)$/i.test(key));
+
+    const hasMore = allKeys.length > PAGE_SIZE;
+    const keys = allKeys.slice(0, PAGE_SIZE);
+
+    const photos = keys.map((key) => ({
+      name: key,
+      url: `${R2_FRC_PUBLIC}/${key.split("/").map(encodeURIComponent).join("/")}`,
+    }));
+
+    return NextResponse.json(
+      { photos, hasMore },
+    );
+  } catch {
     return NextResponse.json({ photos: [], hasMore: false }, { status: 200 });
   }
-
-  const photos = signed
-    .filter((s) => s.signedUrl && s.path)
-    .map((s) => ({ name: s.path!, url: s.signedUrl }));
-
-  return NextResponse.json(
-    { photos, hasMore },
-    {
-      headers: {
-        // CDN-level cache: serve stale while revalidating in background
-        "Cache-Control": "public, s-maxage=3300, stale-while-revalidate=60",
-      },
-    }
-  );
 }

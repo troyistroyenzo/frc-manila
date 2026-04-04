@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
+
+interface Photo {
+  name: string;
+  url: string;
+}
 
 const statements = [
   {
@@ -27,6 +32,16 @@ const statements = [
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then((r) => r.json())
+      .then(({ photos: data }: { photos: Photo[] }) => {
+        setPhotos((data ?? []).slice(0, 6));
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const items = itemRefs.current.filter(Boolean);
@@ -86,8 +101,29 @@ export default function About() {
           },
         }
       );
+
+      // Animate photos in statement 01
+      const photoItems = item.querySelectorAll(".about-photo-item");
+      if (photoItems.length > 0) {
+        gsap.fromTo(
+          photoItems,
+          { opacity: 0, scale: 0.95 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.6,
+            ease: "power3.out",
+            stagger: 0.08,
+            scrollTrigger: {
+              trigger: item,
+              start: "top 70%",
+              toggleActions: "play none none none",
+            },
+          }
+        );
+      }
     });
-  }, []);
+  }, [photos]);
 
   return (
     <section
@@ -115,7 +151,7 @@ export default function About() {
             </div>
 
             {/* Headline + Body */}
-            <div className="md:col-span-11 space-y-6">
+            <div className={i === 0 && photos.length > 0 ? "md:col-span-6 space-y-6" : "md:col-span-11 space-y-6"}>
               <h2
                 className="about-headline text-white uppercase"
                 style={{
@@ -139,6 +175,28 @@ export default function About() {
                 {s.body}
               </p>
             </div>
+
+            {/* Photo grid for statement 01 */}
+            {i === 0 && photos.length > 0 && (
+              <div className="md:col-span-5 grid grid-cols-2 gap-1">
+                {photos.map((photo) => (
+                  <div
+                    key={photo.name}
+                    className="about-photo-item relative aspect-[3/2] overflow-hidden bg-white/5"
+                    style={{ opacity: 0 }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.url}
+                      alt={photo.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ")}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>

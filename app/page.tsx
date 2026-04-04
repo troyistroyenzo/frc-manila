@@ -1,6 +1,6 @@
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
-import PhotoStrip from "@/components/PhotoStrip";
+import MerchPreview from "@/components/MerchPreview";
 import About from "@/components/About";
 import Stats from "@/components/Stats";
 import Partners from "@/components/Partners";
@@ -14,7 +14,7 @@ export default function Home() {
     <main>
       <Nav />
       <Hero />
-      <PhotoStrip />
+      <MerchPreview />
       <About />
       <Stats />
       <Partners />

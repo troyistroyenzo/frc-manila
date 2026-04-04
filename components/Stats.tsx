@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
+
+interface Photo {
+  name: string;
+  url: string;
+}
 
 const stats = [
   { value: 2000, suffix: "+", label: "Cumulative Runners" },
@@ -16,6 +21,48 @@ const stats = [
 export default function Stats() {
   const sectionRef = useRef<HTMLElement>(null);
   const counterRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const indexRef = useRef(0);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then((r) => r.json())
+      .then(({ photos: data }: { photos: Photo[] }) => {
+        setPhotos((data ?? []).slice(0, 10));
+      })
+      .catch(() => {});
+  }, []);
+
+  const advancePhoto = useCallback(() => {
+    if (photos.length < 2 || !imgRef.current) return;
+    const next = (indexRef.current + 1) % photos.length;
+    const nextUrl = photos[next].url;
+
+    const preload = new Image();
+    preload.src = nextUrl;
+    preload.onload = () => {
+      const el = imgRef.current;
+      if (!el) return;
+      gsap.to(el, {
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.inOut",
+        onComplete: () => {
+          el.src = nextUrl;
+          gsap.fromTo(el, { scale: 1 }, { scale: 1.05, duration: 5, ease: "none" });
+          gsap.to(el, { opacity: 1, duration: 0.8, ease: "power2.inOut" });
+        },
+      });
+    };
+    indexRef.current = next;
+  }, [photos]);
+
+  useEffect(() => {
+    if (photos.length === 0) return;
+    const interval = setInterval(advancePhoto, 5000);
+    return () => clearInterval(interval);
+  }, [photos, advancePhoto]);
 
   useEffect(() => {
     stats.forEach((stat, i) => {
@@ -41,7 +88,6 @@ export default function Stats() {
       });
     });
 
-    // Fade in all stat cards
     gsap.fromTo(
       ".stat-card",
       { opacity: 0, y: 40 },
@@ -63,9 +109,24 @@ export default function Stats() {
   return (
     <section
       ref={sectionRef}
-      className="bg-[#111111] py-24 md:py-40"
+      className="relative bg-[#111111] py-24 md:py-40 overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
+      {/* Background carousel */}
+      {photos.length > 0 && (
+        <div className="absolute inset-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            ref={imgRef}
+            src={photos[0]?.url}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/75" />
+        </div>
+      )}
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12">
         <p
           className="text-white/30 uppercase text-sm tracking-widest mb-16"
           style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.2em" }}
@@ -77,7 +138,7 @@ export default function Stats() {
           {stats.map((stat, i) => (
             <div
               key={i}
-              className="stat-card bg-[#111111] p-8 md:p-12 flex flex-col justify-between"
+              className="stat-card bg-[#111111]/80 backdrop-blur-sm p-8 md:p-12 flex flex-col justify-between"
               style={{ opacity: 0 }}
             >
               <div
