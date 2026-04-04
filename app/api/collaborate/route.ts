@@ -1,8 +1,17 @@
 import { NextResponse } from "next/server";
 import { queryD1 } from "@/lib/d1";
-import { sendTelegram } from "@/lib/telegram";
+import { sendTelegram, escapeMd } from "@/lib/telegram";
+import { postLimiter } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  const { success } = postLimiter.check(req);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
   const { brand, email, message } = await req.json() as {
     brand: unknown;
     email: unknown;
@@ -18,6 +27,15 @@ export async function POST(req: Request) {
   if (typeof message !== "string" || !message.trim()) {
     return NextResponse.json({ error: "Message is required" }, { status: 400 });
   }
+  if (brand.length > 200) {
+    return NextResponse.json({ error: "Brand name is too long" }, { status: 400 });
+  }
+  if (email.length > 254) {
+    return NextResponse.json({ error: "Email is too long" }, { status: 400 });
+  }
+  if (message.length > 2000) {
+    return NextResponse.json({ error: "Message is too long" }, { status: 400 });
+  }
 
   try {
     await queryD1(
@@ -29,9 +47,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to save inquiry" }, { status: 500 });
   }
 
-  await sendTelegram(
-    `🤝 *New collaboration inquiry*\n*Brand:* ${brand.trim()}\n*Email:* ${email.toLowerCase().trim()}\n*Message:* ${message.trim()}`
-  );
+  sendTelegram(
+    `🤝 *New collaboration inquiry*\n*Brand:* ${escapeMd(brand.trim())}\n*Email:* ${escapeMd(email.toLowerCase().trim())}\n*Message:* ${escapeMd(message.trim())}`
+  ).catch((err) => console.error("Telegram notify failed:", err));
 
   return NextResponse.json({ success: true });
 }

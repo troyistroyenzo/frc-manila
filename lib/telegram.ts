@@ -1,3 +1,7 @@
+export function escapeMd(text: string): string {
+  return text.replace(/([_*`\[])/g, "\\$1");
+}
+
 export async function sendTelegram(message: string): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;

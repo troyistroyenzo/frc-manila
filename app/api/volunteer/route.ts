@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { queryD1 } from "@/lib/d1";
-import { sendTelegram } from "@/lib/telegram";
+import { sendTelegram, escapeMd } from "@/lib/telegram";
+import { postLimiter } from "@/lib/rate-limit";
 
 const VALID_ROLES = ["pacer", "marketing", "socials", "operations"] as const;
 
 export async function POST(req: Request) {
+  const { success } = postLimiter.check(req);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
   const { name, email, instagram, role, motivation } = await req.json() as {
     name: unknown;
     email: unknown;
@@ -25,6 +34,18 @@ export async function POST(req: Request) {
   if (typeof motivation !== "string" || !motivation.trim()) {
     return NextResponse.json({ error: "Motivation is required" }, { status: 400 });
   }
+  if (name.length > 100) {
+    return NextResponse.json({ error: "Name is too long" }, { status: 400 });
+  }
+  if (email.length > 254) {
+    return NextResponse.json({ error: "Email is too long" }, { status: 400 });
+  }
+  if (motivation.length > 2000) {
+    return NextResponse.json({ error: "Motivation is too long" }, { status: 400 });
+  }
+  if (typeof instagram === "string" && instagram.length > 100) {
+    return NextResponse.json({ error: "Instagram handle is too long" }, { status: 400 });
+  }
 
   const igHandle = typeof instagram === "string" && instagram.trim() ? instagram.trim() : "—";
   const roleName = role.charAt(0).toUpperCase() + role.slice(1);
@@ -39,9 +60,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to save application" }, { status: 500 });
   }
 
-  await sendTelegram(
-    `🙋 *New volunteer application*\n*Name:* ${name.trim()}\n*Email:* ${email.toLowerCase().trim()}\n*Role:* ${roleName}\n*Instagram:* ${igHandle}\n*Why:* ${motivation.trim()}`
-  );
+  sendTelegram(
+    `🙋 *New volunteer application*\n*Name:* ${escapeMd(name.trim())}\n*Email:* ${escapeMd(email.toLowerCase().trim())}\n*Role:* ${escapeMd(roleName)}\n*Instagram:* ${escapeMd(igHandle)}\n*Why:* ${escapeMd(motivation.trim())}`
+  ).catch((err) => console.error("Telegram notify failed:", err));
 
   return NextResponse.json({ success: true });
 }
