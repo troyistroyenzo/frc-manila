@@ -23,11 +23,27 @@ function TelegramIcon() {
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const line1Ref = useRef<HTMLDivElement>(null);
   const line2Ref = useRef<HTMLDivElement>(null);
   const line3Ref = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const scrollHintRef = useRef<HTMLDivElement>(null);
+
+  // Ensure autoplay fires even when browser defers it
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.load();
+    const play = () => video.play().catch(() => {});
+    if (video.readyState >= 3) {
+      play();
+    } else {
+      video.addEventListener("canplay", play, { once: true });
+    }
+    return () => video.removeEventListener("canplay", play);
+  }, []);
 
   useEffect(() => {
     const tl = gsap.timeline({ delay: 0.3 });
@@ -70,12 +86,14 @@ export default function Hero() {
     >
       {/* Video — served directly from R2 */}
       <video
+        ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover opacity-40"
         autoPlay
         muted
         loop
         playsInline
         preload="auto"
+        disablePictureInPicture
       >
         <source src={VIDEO_URL} type="video/mp4" />
       </video>
