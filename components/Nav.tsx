@@ -25,6 +25,8 @@ export default function Nav() {
         src="/frc-logo-white.svg"
         alt="FRC Manila"
         className="h-6 w-auto"
+        width={120}
+        height={24}
       />
 
       <a

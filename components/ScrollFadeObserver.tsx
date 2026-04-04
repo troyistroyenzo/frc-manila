@@ -15,20 +15,10 @@ export default function ScrollFadeObserver() {
       { threshold: 0.12 }
     );
 
-    // Observe existing elements
-    const observe = () => {
-      document.querySelectorAll("[data-fade]").forEach((el) => observer.observe(el));
-    };
-
-    observe();
-
-    // Re-observe on DOM mutations (for dynamically rendered content)
-    const mutation = new MutationObserver(observe);
-    mutation.observe(document.body, { childList: true, subtree: true });
+    document.querySelectorAll("[data-fade]").forEach((el) => observer.observe(el));
 
     return () => {
       observer.disconnect();
-      mutation.disconnect();
     };
   }, []);
 

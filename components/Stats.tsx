@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type { Photo } from "@/lib/gallery";
 
 gsap.registerPlugin(ScrollTrigger);
-
-interface Photo {
-  name: string;
-  url: string;
-}
 
 const stats = [
   { value: 2000, suffix: "+", label: "Cumulative Runners" },
@@ -18,21 +14,15 @@ const stats = [
   { value: null, suffix: "", label: "Weekly Runs", display: "Every\nWeekend" },
 ];
 
-export default function Stats() {
+interface StatsProps {
+  photos: Photo[];
+}
+
+export default function Stats({ photos }: StatsProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const counterRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const imgRef = useRef<HTMLImageElement>(null);
   const indexRef = useRef(0);
-  const [photos, setPhotos] = useState<Photo[]>([]);
-
-  useEffect(() => {
-    fetch("/api/gallery")
-      .then((r) => r.json())
-      .then(({ photos: data }: { photos: Photo[] }) => {
-        setPhotos((data ?? []).slice(0, 10));
-      })
-      .catch(() => {});
-  }, []);
 
   const advancePhoto = useCallback(() => {
     if (photos.length < 2 || !imgRef.current) return;
@@ -111,7 +101,6 @@ export default function Stats() {
       ref={sectionRef}
       className="relative bg-[#111111] py-24 md:py-40 overflow-hidden"
     >
-      {/* Background carousel */}
       {photos.length > 0 && (
         <div className="absolute inset-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}

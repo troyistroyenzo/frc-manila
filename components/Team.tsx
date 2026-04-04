@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -89,13 +90,12 @@ export default function Team() {
             >
               {/* Photo */}
               <div className="w-full aspect-square bg-white/5 relative overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={`${R2_FRC}/city%20leads/${member.key}.${member.ext}`}
                   alt={member.display}
-                  className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                  decoding="async"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
               </div>

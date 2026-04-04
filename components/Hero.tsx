@@ -41,11 +41,9 @@ export default function Hero() {
         observer.disconnect();
         video.muted = true;
         // Assign src only now to avoid network cost on initial load
-        if (!video.src && !video.querySelector("source")?.getAttribute("data-loaded")) {
-          const source = video.querySelector("source");
-          if (source && !source.src) {
-            source.src = VIDEO_URL;
-          }
+        const source = video.querySelector("source");
+        if (source && !source.src) {
+          source.src = source.getAttribute("data-src") || VIDEO_URL;
         }
         video.load();
         const play = () => video.play().catch(() => {});
@@ -111,7 +109,7 @@ export default function Hero() {
         preload="none"
         disablePictureInPicture
       >
-        <source src={VIDEO_URL} type="video/mp4" />
+        <source data-src={VIDEO_URL} type="video/mp4" />
       </video>
 
       {/* Gradient overlay */}
@@ -142,7 +140,7 @@ export default function Hero() {
           className="overflow-hidden"
           style={{ opacity: 0 }}
         >
-          <h1
+          <p
             className="text-white uppercase"
             style={{
               fontFamily: "var(--font-koulen), Koulen, sans-serif",
@@ -152,7 +150,7 @@ export default function Hero() {
             }}
           >
             MANILA
-          </h1>
+          </p>
         </div>
 
         <div

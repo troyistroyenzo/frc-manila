@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type { Photo } from "@/lib/gallery";
 
 gsap.registerPlugin(ScrollTrigger);
-
-interface Photo {
-  name: string;
-  url: string;
-}
 
 // Statement 01 — explicit photos (grid)
 const STMT01_KEYS = [
@@ -38,37 +34,23 @@ const statements = [
   },
 ];
 
-export default function About() {
+interface AboutProps {
+  photos: Photo[];
+}
+
+export default function About({ photos }: AboutProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [photos01, setPhotos01] = useState<Photo[]>([]);
-  const [photo02Url, setPhoto02Url] = useState<string | null>(null);
-  const [photo03, setPhoto03] = useState<Photo | null>(null);
 
-  useEffect(() => {
-    fetch("/api/gallery?all=true")
-      .then((r) => r.json())
-      .then(({ photos: data }: { photos: Photo[] }) => {
-        const all: Photo[] = data ?? [];
+  // Derive photo selections from props
+  const matched01 = STMT01_KEYS
+    .map((key) => photos.find((p) => p.name.includes(key.replace("photos/", ""))))
+    .filter(Boolean) as Photo[];
 
-        // Statement 01: match by partial key
-        const matched01 = STMT01_KEYS
-          .map((key) => all.find((p) => p.name.includes(key.replace("photos/", ""))))
-          .filter(Boolean) as Photo[];
-        setPhotos01(matched01);
-
-        // Remaining photos not used in Statement 01
-        const usedInStmt01 = new Set(matched01.map((p) => p.name));
-        const remaining = all.filter((p) => !usedInStmt01.has(p.name));
-
-        // Statement 02: first available photo not in stmt01
-        setPhoto02Url(remaining[0]?.url ?? null);
-
-        // Statement 03: second available photo not in stmt01
-        setPhoto03(remaining[1] ?? null);
-      })
-      .catch(() => {});
-  }, []);
+  const usedInStmt01 = new Set(matched01.map((p) => p.name));
+  const remaining = photos.filter((p) => !usedInStmt01.has(p.name));
+  const photo02Url = remaining[0]?.url ?? null;
+  const photo03 = remaining[1] ?? null;
 
   useEffect(() => {
     const items = itemRefs.current.filter(Boolean);
@@ -112,10 +94,8 @@ export default function About() {
       }
     });
 
-    // Recalculate trigger positions after async photo state settles —
-    // fires any triggers already in the viewport.
     ScrollTrigger.refresh();
-  }, [photos01, photo02Url, photo03]);
+  }, [photos]);
 
   return (
     <section ref={sectionRef} className="bg-black py-24 md:py-40">
@@ -131,7 +111,7 @@ export default function About() {
               {statements[0].number}
             </span>
           </div>
-          <div className={photos01.length > 0 ? "md:col-span-6 space-y-6" : "md:col-span-11 space-y-6"}>
+          <div className={matched01.length > 0 ? "md:col-span-6 space-y-6" : "md:col-span-11 space-y-6"}>
             <h2 className="about-headline text-white uppercase" style={{ fontFamily: "var(--font-koulen), Koulen, sans-serif", fontSize: "clamp(2.5rem, 6vw, 7rem)", lineHeight: 0.85, letterSpacing: "0.03em" }}>
               {statements[0].headline}
             </h2>
@@ -139,9 +119,9 @@ export default function About() {
               {statements[0].body}
             </p>
           </div>
-          {photos01.length > 0 && (
+          {matched01.length > 0 && (
             <div className="md:col-span-5 grid grid-cols-2 gap-1">
-              {photos01.map((photo) => (
+              {matched01.map((photo) => (
                 <div key={photo.name} className="about-photo-item relative aspect-[3/2] overflow-hidden bg-white/5" style={{ opacity: 0 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={photo.url} alt={photo.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ")} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
@@ -151,7 +131,7 @@ export default function About() {
           )}
         </div>
 
-        {/* Statement 02 — photo LEFT (alternating) */}
+        {/* Statement 02 — photo LEFT */}
         <div
           ref={(el) => { itemRefs.current[1] = el; }}
           className="border-t border-white/10 py-16 md:py-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16"
@@ -161,7 +141,6 @@ export default function About() {
               {statements[1].number}
             </span>
           </div>
-          {/* Photo comes before text in DOM — appears on left in grid */}
           {photo02Url && (
             <div className="about-single-photo md:col-span-4 relative aspect-[3/4] overflow-hidden bg-white/5 order-first md:order-none" style={{ opacity: 0 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -178,7 +157,7 @@ export default function About() {
           </div>
         </div>
 
-        {/* Statement 03 — photo RIGHT (back to default) */}
+        {/* Statement 03 — photo RIGHT */}
         <div
           ref={(el) => { itemRefs.current[2] = el; }}
           className="border-t border-white/10 py-16 md:py-24 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16"
