@@ -37,6 +37,7 @@ export const metadata: Metadata = {
     description: "A movement for movement. Built for high-value, high-achieving individuals.",
     images: ["/og-image.jpg"],
   },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
