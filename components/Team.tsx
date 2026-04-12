@@ -15,7 +15,7 @@ const MEMBERS = [
   { key: "mark",   ext: "JPG", display: "Mark",   title: "Co-Founder @ IRL Manila", bio: "Busy helping people meet new friends and lovers. Artist on break." },
   { key: "taty",   ext: "JPG", display: "Taty",   title: "Co-Founder @ IRL Manila · Licensed Financial Protector", bio: "Connecting, protecting, and educating people. Loves numbers, walking, and coffee." },
   { key: "niki",   ext: "JPG", display: "Nicky",  title: "Fashion Designer & Founder · CEO @ Nicky Rice", bio: "Designs brands, trades markets, catches flights. Eats like a construction worker. Somehow never shows." },
-  { key: "troy",   ext: "JPG", display: "Troy",   title: "Co-Founder @ FRC Manila, Locked In Residency, Z21 Launchpad & Farmhouse Smokers", bio: "Hyrox athlete and AI bot framer." },
+  { key: "troy",   ext: "JPG", display: "Troy",   title: "Co-Founder @ FRC Manila, Locked In Residency, Z21 Launchpad & Farmhouse Smokers", bio: "Hyrox athlete and AI bot farmer." },
 ];
 
 export default function Team() {
