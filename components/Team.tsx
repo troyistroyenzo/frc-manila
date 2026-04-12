@@ -10,11 +10,11 @@ gsap.registerPlugin(ScrollTrigger);
 const R2_FRC = "https://pub-ac9f5d9fc73d402ca8032993e2b2761c.r2.dev";
 
 const MEMBERS = [
-  { key: "aileen", ext: "JPG", display: "Aileen", title: "Co-Founder & CPO @ HeyApril · Founder @ Himaya Lifestyle Lounge", bio: "" },
+  { key: "aileen", ext: "JPG", display: "Aileen", title: "Co-Founder & CPO @ HeyApril · Founder & Owner @ Himaya Lifestyle Lounge", bio: "Building startups, fixing org charts, and fixing ballet buns — all in one day." },
   { key: "chris",  ext: "JPG", display: "Chris",  title: "Co-Founder @ FRC Manila, Openverse and Bettergov.ph", bio: "Anxiously building communities for organic encounters." },
   { key: "mark",   ext: "JPG", display: "Mark",   title: "Co-Founder @ IRL Manila", bio: "Busy helping people meet new friends and lovers. Artist on break." },
   { key: "taty",   ext: "JPG", display: "Taty",   title: "Co-Founder @ IRL Manila · Licensed Financial Protector", bio: "Connecting, protecting, and educating people. Loves numbers, walking, and coffee." },
-  { key: "niki",   ext: "JPG", display: "Nicky",  title: "CEO @ Nicky Rice", bio: "" },
+  { key: "niki",   ext: "JPG", display: "Nicky",  title: "Fashion Designer & Founder · CEO @ Nicky Rice", bio: "Designs brands, trades markets, catches flights. Eats like a construction worker. Somehow never shows." },
   { key: "troy",   ext: "JPG", display: "Troy",   title: "Co-Founder @ FRC Manila, Locked In Residency, Z21 Launchpad & Farmhouse Smokers", bio: "Hyrox athlete and AI bot framer." },
 ];
 
