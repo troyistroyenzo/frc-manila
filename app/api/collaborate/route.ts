@@ -12,10 +12,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const { brand, email, message } = await req.json() as {
+  const { brand, email, message, phone } = await req.json() as {
     brand: unknown;
     email: unknown;
     message: unknown;
+    phone: unknown;
   };
 
   if (typeof brand !== "string" || !brand.trim()) {
@@ -36,11 +37,20 @@ export async function POST(req: Request) {
   if (message.length > 2000) {
     return NextResponse.json({ error: "Message is too long" }, { status: 400 });
   }
+  if (phone != null && phone !== "") {
+    if (typeof phone !== "string" || phone.length > 20) {
+      return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+    }
+    if (!/^\+\d{1,4} \d{4,14}$/.test(phone.trim())) {
+      return NextResponse.json({ error: "Invalid phone format" }, { status: 400 });
+    }
+  }
+  const phoneTrimmed = typeof phone === "string" && phone.trim() ? phone.trim() : null;
 
   try {
     await queryD1(
-      "INSERT INTO collaborations (brand, email, message) VALUES (?, ?, ?)",
-      [brand.trim(), email.toLowerCase().trim(), message.trim()]
+      "INSERT INTO collaborations (brand, email, message, phone) VALUES (?, ?, ?, ?)",
+      [brand.trim(), email.toLowerCase().trim(), message.trim(), phoneTrimmed]
     );
   } catch (err) {
     console.error("D1 collaborate insert error:", err);
@@ -49,7 +59,11 @@ export async function POST(req: Request) {
 
   try {
     await sendTelegram(
-      `🤝 *New collaboration inquiry*\n*Brand:* ${escapeMd(brand.trim())}\n*Email:* ${escapeMd(email.toLowerCase().trim())}\n*Message:* ${escapeMd(message.trim())}`
+      `🤝 *New collaboration inquiry*\n` +
+      `*Brand:* ${escapeMd(brand.trim())}\n` +
+      `*Email:* ${escapeMd(email.toLowerCase().trim())}\n` +
+      (phoneTrimmed ? `*Phone:* ${escapeMd(phoneTrimmed)}\n` : "") +
+      `*Message:* ${escapeMd(message.trim())}`
     );
   } catch (err) {
     console.error("Telegram notify failed:", err);
