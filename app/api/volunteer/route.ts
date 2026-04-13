@@ -67,8 +67,16 @@ export async function POST(req: Request) {
       [name.trim(), email.toLowerCase().trim(), igHandle === "—" ? null : igHandle, role, motivation.trim(), phoneTrimmed]
     );
   } catch (err) {
-    console.error("D1 volunteer insert error:", err);
-    return NextResponse.json({ error: "Failed to save application" }, { status: 500 });
+    // Fallback: phone column may not exist yet — retry without it
+    try {
+      await queryD1(
+        "INSERT INTO volunteer_applications (name, email, instagram, role, motivation) VALUES (?, ?, ?, ?, ?)",
+        [name.trim(), email.toLowerCase().trim(), igHandle === "—" ? null : igHandle, role, motivation.trim()]
+      );
+    } catch (fallbackErr) {
+      console.error("D1 volunteer insert error:", err, fallbackErr);
+      return NextResponse.json({ error: "Failed to save application" }, { status: 500 });
+    }
   }
 
   try {

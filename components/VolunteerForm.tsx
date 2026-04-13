@@ -197,7 +197,7 @@ export default function VolunteerForm() {
                 >
                   {COUNTRIES.map((c) => (
                     <option key={c.code} value={c.dial} style={{ background: "#111", color: "#fff" }}>
-                      {c.dial} {c.name}
+                      {c.dial}
                     </option>
                   ))}
                 </select>

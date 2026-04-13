@@ -53,8 +53,16 @@ export async function POST(req: Request) {
       [brand.trim(), email.toLowerCase().trim(), message.trim(), phoneTrimmed]
     );
   } catch (err) {
-    console.error("D1 collaborate insert error:", err);
-    return NextResponse.json({ error: "Failed to save inquiry" }, { status: 500 });
+    // Fallback: phone column may not exist yet — retry without it
+    try {
+      await queryD1(
+        "INSERT INTO collaborations (brand, email, message) VALUES (?, ?, ?)",
+        [brand.trim(), email.toLowerCase().trim(), message.trim()]
+      );
+    } catch (fallbackErr) {
+      console.error("D1 collaborate insert error:", err, fallbackErr);
+      return NextResponse.json({ error: "Failed to save inquiry" }, { status: 500 });
+    }
   }
 
   try {
