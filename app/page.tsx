@@ -10,6 +10,8 @@ import JoinCTA from "@/components/JoinCTA";
 import Footer from "@/components/Footer";
 import { getGalleryPhotos, type Photo } from "@/lib/gallery";
 
+export const revalidate = 300;
+
 export default async function Home() {
   let photos: Photo[] = [];
   try {

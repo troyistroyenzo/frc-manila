@@ -104,6 +104,7 @@ export default function MerchPreview() {
               name="name"
               type="text"
               required
+              maxLength={100}
               placeholder="Your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -115,6 +116,7 @@ export default function MerchPreview() {
               name="email"
               type="email"
               required
+              maxLength={254}
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

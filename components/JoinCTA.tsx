@@ -147,6 +147,7 @@ export default function JoinCTA() {
                 name="brand"
                 type="text"
                 required
+                maxLength={200}
                 placeholder="Brand / Company"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
@@ -158,6 +159,7 @@ export default function JoinCTA() {
                 name="email"
                 type="email"
                 required
+                maxLength={254}
                 placeholder="Email address"
                 value={partnerEmail}
                 onChange={(e) => setPartnerEmail(e.target.value)}
@@ -168,6 +170,7 @@ export default function JoinCTA() {
               <textarea
                 name="message"
                 required
+                maxLength={2000}
                 placeholder="Tell us about your brand and how you'd like to collaborate"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}

@@ -8,11 +8,11 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
   "Content-Security-Policy": [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' https://*.r2.dev data: blob:",
-    "media-src 'self' https://*.r2.dev",
+    "img-src 'self' https://pub-ac9f5d9fc73d402ca8032993e2b2761c.r2.dev data: blob:",
+    "media-src 'self' https://pub-ac9f5d9fc73d402ca8032993e2b2761c.r2.dev",
     "connect-src 'self' https://api.cloudflare.com https://api.telegram.org",
     "frame-ancestors 'none'",
   ].join("; "),
@@ -26,14 +26,27 @@ export function proxy(request: NextRequest) {
     const origin = request.headers.get("origin");
     const host = request.headers.get("host");
 
-    if (origin && host) {
-      const expectedOrigin = `${nextUrl.protocol}//${host}`;
-      if (origin !== expectedOrigin) {
-        return new NextResponse(JSON.stringify({ error: "Forbidden" }), {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
+    if (!origin || !host) {
+      return new NextResponse(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    let originHost: string;
+    try {
+      originHost = new URL(origin).host;
+    } catch {
+      return new NextResponse(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (originHost !== host) {
+      return new NextResponse(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
     }
   }
 

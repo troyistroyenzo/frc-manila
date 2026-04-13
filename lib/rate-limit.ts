@@ -27,8 +27,10 @@ export function rateLimit(opts: { windowMs: number; max: number }): RateLimiter 
 
   return {
     check(request: Request) {
-      const forwarded = request.headers.get("x-forwarded-for");
-      const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
+      const ip =
+        request.headers.get("x-real-ip") ??
+        request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+        "unknown";
 
       const now = Date.now();
       const cutoff = now - opts.windowMs;

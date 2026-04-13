@@ -1,5 +1,5 @@
 export function escapeMd(text: string): string {
-  return text.replace(/([_*`\[])/g, "\\$1");
+  return text.replace(/([_*`\[\]()])/g, "\\$1");
 }
 
 export async function sendTelegram(message: string): Promise<void> {

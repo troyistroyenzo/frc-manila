@@ -41,9 +41,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to save" }, { status: 500 });
   }
 
-  sendTelegram(
-    `👟 *New merch waitlist signup*\n*Name:* ${escapeMd(name.trim())}\n*Email:* ${escapeMd(email.toLowerCase().trim())}`
-  ).catch((err) => console.error("Telegram notify failed:", err));
+  try {
+    await sendTelegram(
+      `👟 *New merch waitlist signup*\n*Name:* ${escapeMd(name.trim())}\n*Email:* ${escapeMd(email.toLowerCase().trim())}`
+    );
+  } catch (err) {
+    console.error("Telegram notify failed:", err);
+  }
 
   return NextResponse.json({ success: true });
 }

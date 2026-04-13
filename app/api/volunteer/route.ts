@@ -60,9 +60,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to save application" }, { status: 500 });
   }
 
-  sendTelegram(
-    `🙋 *New volunteer application*\n*Name:* ${escapeMd(name.trim())}\n*Email:* ${escapeMd(email.toLowerCase().trim())}\n*Role:* ${escapeMd(roleName)}\n*Instagram:* ${escapeMd(igHandle)}\n*Why:* ${escapeMd(motivation.trim())}`
-  ).catch((err) => console.error("Telegram notify failed:", err));
+  try {
+    await sendTelegram(
+      `🙋 *New volunteer application*\n*Name:* ${escapeMd(name.trim())}\n*Email:* ${escapeMd(email.toLowerCase().trim())}\n*Role:* ${escapeMd(roleName)}\n*Instagram:* ${escapeMd(igHandle)}\n*Why:* ${escapeMd(motivation.trim())}`
+    );
+  } catch (err) {
+    console.error("Telegram notify failed:", err);
+  }
 
   return NextResponse.json({ success: true });
 }

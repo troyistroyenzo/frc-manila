@@ -1,4 +1,6 @@
-const D1_URL = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/d1/database/${process.env.CLOUDFLARE_D1_DATABASE_ID}/query`;
+import { requireEnv } from "@/lib/env";
+
+const D1_URL = `https://api.cloudflare.com/client/v4/accounts/${requireEnv("CLOUDFLARE_ACCOUNT_ID")}/d1/database/${requireEnv("CLOUDFLARE_D1_DATABASE_ID")}/query`;
 
 export async function queryD1<T = Record<string, unknown>>(
   sql: string,
@@ -7,7 +9,7 @@ export async function queryD1<T = Record<string, unknown>>(
   const res = await fetch(D1_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
+      Authorization: `Bearer ${requireEnv("CLOUDFLARE_API_TOKEN")}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ sql, params }),
