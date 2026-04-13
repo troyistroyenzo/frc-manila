@@ -14,12 +14,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, email, instagram, role, motivation } = await req.json() as {
+  const { name, email, instagram, role, motivation, phone } = await req.json() as {
     name: unknown;
     email: unknown;
     instagram: unknown;
     role: unknown;
     motivation: unknown;
+    phone: unknown;
   };
 
   if (typeof name !== "string" || !name.trim()) {
@@ -47,13 +48,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Instagram handle is too long" }, { status: 400 });
   }
 
+  if (phone != null && phone !== "") {
+    if (typeof phone !== "string" || phone.length > 20) {
+      return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+    }
+    if (!/^\+\d{1,4} \d{4,14}$/.test(phone.trim())) {
+      return NextResponse.json({ error: "Invalid phone format" }, { status: 400 });
+    }
+  }
+  const phoneTrimmed = typeof phone === "string" && phone.trim() ? phone.trim() : null;
+
   const igHandle = typeof instagram === "string" && instagram.trim() ? instagram.trim() : "—";
   const roleName = role.charAt(0).toUpperCase() + role.slice(1);
 
   try {
     await queryD1(
-      "INSERT INTO volunteer_applications (name, email, instagram, role, motivation) VALUES (?, ?, ?, ?, ?)",
-      [name.trim(), email.toLowerCase().trim(), igHandle === "—" ? null : igHandle, role, motivation.trim()]
+      "INSERT INTO volunteer_applications (name, email, instagram, role, motivation, phone) VALUES (?, ?, ?, ?, ?, ?)",
+      [name.trim(), email.toLowerCase().trim(), igHandle === "—" ? null : igHandle, role, motivation.trim(), phoneTrimmed]
     );
   } catch (err) {
     console.error("D1 volunteer insert error:", err);
@@ -62,7 +73,13 @@ export async function POST(req: Request) {
 
   try {
     await sendTelegram(
-      `🙋 *New volunteer application*\n*Name:* ${escapeMd(name.trim())}\n*Email:* ${escapeMd(email.toLowerCase().trim())}\n*Role:* ${escapeMd(roleName)}\n*Instagram:* ${escapeMd(igHandle)}\n*Why:* ${escapeMd(motivation.trim())}`
+      `🙋 *New volunteer application*\n` +
+      `*Name:* ${escapeMd(name.trim())}\n` +
+      `*Email:* ${escapeMd(email.toLowerCase().trim())}\n` +
+      `*Role:* ${escapeMd(roleName)}\n` +
+      (phoneTrimmed ? `*Phone:* ${escapeMd(phoneTrimmed)}\n` : "") +
+      `*Instagram:* ${escapeMd(igHandle)}\n` +
+      `*Why:* ${escapeMd(motivation.trim())}`
     );
   } catch (err) {
     console.error("Telegram notify failed:", err);

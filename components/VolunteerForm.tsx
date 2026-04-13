@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/country-codes";
 
 const ROLES = [
   {
@@ -33,6 +34,10 @@ export default function VolunteerForm() {
   const [instagram, setInstagram] = useState("");
   const [role, setRole] = useState<RoleId | "">("");
   const [motivation, setMotivation] = useState("");
+  const [dialCode, setDialCode] = useState(
+    COUNTRIES.find(c => c.code === DEFAULT_COUNTRY)?.dial ?? "+63"
+  );
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,7 +51,14 @@ export default function VolunteerForm() {
       const res = await fetch("/api/volunteer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, instagram, role, motivation }),
+        body: JSON.stringify({
+          name,
+          email,
+          instagram,
+          role,
+          motivation,
+          phone: phoneNumber.trim() ? `${dialCode} ${phoneNumber.trim()}` : null,
+        }),
       });
 
       if (!res.ok) {
@@ -169,6 +181,38 @@ export default function VolunteerForm() {
                 className="w-full bg-transparent border border-white/20 text-white px-5 py-3.5 text-sm uppercase tracking-wider placeholder:text-white/30 focus:border-white/50 focus:outline-none transition-colors"
                 style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.1em" }}
               />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-white/30 text-xs uppercase tracking-widest mb-2" style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.15em" }}>
+                Phone (Optional)
+              </label>
+              <div className="w-full flex border border-white/20 focus-within:border-white/50 transition-colors">
+                <select
+                  value={dialCode}
+                  onChange={(e) => setDialCode(e.target.value)}
+                  className="bg-[#111] text-white/70 text-sm px-3 py-3.5 appearance-none cursor-pointer border-r border-white/20 focus:outline-none hover:text-white transition-colors"
+                  style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.1em" }}
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.dial} style={{ background: "#111", color: "#fff" }}>
+                      {c.dial} {c.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  name="phone"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={15}
+                  placeholder="Phone number (optional)"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d]/g, ""))}
+                  className="flex-1 bg-transparent text-white px-5 py-3.5 text-sm uppercase tracking-wider placeholder:text-white/30 focus:outline-none transition-colors"
+                  style={{ fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.1em" }}
+                />
+              </div>
             </div>
 
             {/* Role selection */}
