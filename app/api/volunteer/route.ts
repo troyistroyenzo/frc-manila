@@ -14,14 +14,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, email, instagram, role, motivation, phone } = await req.json() as {
-    name: unknown;
-    email: unknown;
-    instagram: unknown;
-    role: unknown;
-    motivation: unknown;
-    phone: unknown;
-  };
+  let body: { name: unknown; email: unknown; instagram: unknown; role: unknown; motivation: unknown; phone: unknown };
+  try {
+    body = await req.json() as typeof body;
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { name, email, instagram, role, motivation, phone } = body;
 
   if (typeof name !== "string" || !name.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -67,16 +66,8 @@ export async function POST(req: Request) {
       [name.trim(), email.toLowerCase().trim(), igHandle === "—" ? null : igHandle, role, motivation.trim(), phoneTrimmed]
     );
   } catch (err) {
-    // Fallback: phone column may not exist yet — retry without it
-    try {
-      await queryD1(
-        "INSERT INTO volunteer_applications (name, email, instagram, role, motivation) VALUES (?, ?, ?, ?, ?)",
-        [name.trim(), email.toLowerCase().trim(), igHandle === "—" ? null : igHandle, role, motivation.trim()]
-      );
-    } catch (fallbackErr) {
-      console.error("D1 volunteer insert error:", err, fallbackErr);
-      return NextResponse.json({ error: "Failed to save application" }, { status: 500 });
-    }
+    console.error("D1 volunteer insert error:", err);
+    return NextResponse.json({ error: "Failed to save application" }, { status: 500 });
   }
 
   try {

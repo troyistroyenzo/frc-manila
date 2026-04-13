@@ -12,12 +12,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const { brand, email, message, phone } = await req.json() as {
-    brand: unknown;
-    email: unknown;
-    message: unknown;
-    phone: unknown;
-  };
+  let body: { brand: unknown; email: unknown; message: unknown; phone: unknown };
+  try {
+    body = await req.json() as typeof body;
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { brand, email, message, phone } = body;
 
   if (typeof brand !== "string" || !brand.trim()) {
     return NextResponse.json({ error: "Brand name is required" }, { status: 400 });
@@ -53,16 +54,8 @@ export async function POST(req: Request) {
       [brand.trim(), email.toLowerCase().trim(), message.trim(), phoneTrimmed]
     );
   } catch (err) {
-    // Fallback: phone column may not exist yet — retry without it
-    try {
-      await queryD1(
-        "INSERT INTO collaborations (brand, email, message) VALUES (?, ?, ?)",
-        [brand.trim(), email.toLowerCase().trim(), message.trim()]
-      );
-    } catch (fallbackErr) {
-      console.error("D1 collaborate insert error:", err, fallbackErr);
-      return NextResponse.json({ error: "Failed to save inquiry" }, { status: 500 });
-    }
+    console.error("D1 collaborate insert error:", err);
+    return NextResponse.json({ error: "Failed to save inquiry" }, { status: 500 });
   }
 
   try {

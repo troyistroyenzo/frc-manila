@@ -12,7 +12,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const { name, email } = await req.json() as { name: unknown; email: unknown };
+  let body: { name: unknown; email: unknown };
+  try {
+    body = await req.json() as { name: unknown; email: unknown };
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { name, email } = body;
 
   if (typeof name !== "string" || !name.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
